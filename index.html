@@ -1,565 +1,652 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dự Báo Thời Tiết Thông Minh</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
+* {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
 
-    body {
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: linear-gradient(135deg, #71b7e6, #9b59b6);
-      color: #fff;
-      padding: 20px;
-      transition: background 0.5s ease;
-    }
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #71b7e6, #9b59b6);
+            color: #fff;
+            padding: 20px;
+        }
 
-    .container {
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(10px);
-      border-radius: 20px;
-      padding: 30px;
-      max-width: 600px;
-      width: 100%;
-      text-align: center;
-      transition: transform 0.3s ease;
-    }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
 
-    .container:hover {
-      transform: scale(1.02);
-    }
+        
 
-    h1 {
-      font-size: 2.5em;
-      margin-bottom: 20px;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-    }
+            @keyframes fadeInScale {
+        0% {
+            opacity: 0;
+            transform: scale(0.8); 
+        }
+        100% {
+            opacity: 1;
+            transform: scale(1); 
+        }
+        }
 
-    .search-box {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
+        @keyframes updateAnimation {
+        0% {
+            transform: scale(1);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+        50% {
+            transform: scale(1.05);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        100% {
+            transform: scale(1);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+        }
+        .container:hover {
+            transform: scale(1.02);
+        }
 
-    input[type="text"] {
-      padding: 12px;
-      border: none;
-      border-radius: 25px;
-      width: 70%;
-      font-size: 1em;
-      outline: none;
-      background: rgba(255, 255, 255, 0.2);
-      color: #fff;
-    }
+        .container.update {
+            animation: updateAnimation 0.6s ease-in-out;
+            animation: updateAnimation 0.6s ease-in-out;
+        }
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
 
-    input[type="text"]::placeholder {
-      color: #ddd;
-    }
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
 
-    button {
-      padding: 12px 20px;
-      border: none;
-      border-radius: 25px;
-      background: #3498db;
-      color: #fff;
-      font-size: 1em;
-      cursor: pointer;
-      transition: background 0.3s ease;
-    }
+        input[type="text"] {
+            padding: 12px;
+            border: none;
+            border-radius: 25px;
+            width: 70%;
+            font-size: 1em;
+            outline: none;
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }
 
-    button:hover {
-      background: #2980b9;
-    }
+        input[type="text"]::placeholder {
+            color: #ddd;
+        }
 
-    .weather-info {
-      margin-top: 20px;
-      display: none;
-    }
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 25px;
+            background: #3498db;
+            color: #fff;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
 
-    .weather-info h2 {
-      font-size: 1.8em;
-      margin-bottom: 10px;
-    }
+        button:hover {
+            background: #2980b9;
+        }
 
-    .weather-info p {
-      font-size: 1.2em;
-      margin: 8px 0;
-    }
+        .weather-info {
+            margin-top: 20px;
+            display: none;
+        }
 
-    .weather-icon {
-      width: 100px;
-      margin: 10px auto;
-    }
+        .weather-info h2 {
+            font-size: 1.8em;
+            margin-bottom: 10px;
+        }
 
-    .suggestions {
-      margin-top: 20px;
-      padding: 15px;
-      background: rgba(0, 0, 0, 0.2);
-      border-radius: 15px;
-    }
+        .weather-info p {
+            font-size: 1.2em;
+            margin: 8px 0;
+        }
 
-    .suggestions h3 {
-      font-size: 1.5em;
-      margin-bottom: 10px;
-    }
+        .weather-icon {
+            width: 100px;
+            margin: 10px auto;
+        }
 
-    .suggestions ul {
-      list-style: none;
-      font-size: 1.1em;
-    }
+        .suggestions {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+        }
 
-    .suggestions li {
-      margin: 5px 0;
-    }
+        .suggestions h3 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
 
-    @media (max-width: 500px) {
-      h1 {
-        font-size: 2em;
-      }
+        .suggestions ul {
+            list-style: none;
+            font-size: 1.1em;
+        }
 
-      .container {
-        padding: 20px;
-      }
+        .suggestions li {
+            margin: 5px 0;
+        }
 
-      input[type="text"], button {
-        font-size: 0.9em;
-      }
-    }
+        @media (max-width: 500px) {
+            h1 {
+                font-size: 2em;
+            }
 
-    .sunny {
-      background: url('https://img.tripi.vn/cdn-cgi/image/width=700,height=700/https://gcs.tripi.vn/public-tripi/tripi-feed/img/482886OUG/anh-mo-ta.png') no-repeat center center/cover;
-    }
+            .container {
+                padding: 20px;
+            }
 
-    .rainy {
-      background: url('https://images.pexels.com/photos/459451/pexels-photo-459451.jpeg?auto=compress&cs=tinysrgb&w=600');
-    }
+            input[type="text"], button {
+                font-size: 0.9em;
+            }
+        }
 
-    .cloudy {
-      background: url('https://cdn.pixabay.com/photo/2020/08/11/21/39/clouds-5481190_640.jpg') no-repeat center center/cover;
-    }
+        /* Thêm class 'error' vào CSS */
+        .error {
+            font-size: 1.5em;
+            animation: shakeInput 0.5s;
+            color: red;
+        }
 
-    .snowy {
-      background: url('https://photo.znews.vn/w660/Uploaded/kbd_bcvi/2020_12_23/5fe2ae0ea56de.jpg') no-repeat center center/cover;
-    }
+        .error-container {
+            animation: shakeContainer 0.5s;
+        }
 
-    #snowCanvas {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 1;
-    }
+        .weather-info {
+            margin-top: 20px;
+            display: none;
+            animation: fadeInScale 0.5s ease-in-out; /* Apply the animation here */
+        }
 
-    .error {
-      font-size: 1.5em;
-      animation: shake 0.5s;
-      color: red;
-    }
+        @keyframes fadeInScale {
+            0% {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
 
-    @keyframes shake {
-      0% { transform: translateX(0); }
-      25% { transform: translateX(5px); }
-      50% { transform: translateX(-5px); }
-      75% { transform: translateX(5px); }
-      100% { transform: translateX(0); }
-    }
-    .sun {
-  position: fixed;
-  top: 80px;
-  right: 80px;
-  width: 100px;
-  height: 100px;
-  background: radial-gradient(circle, #FFD700 40%, rgba(255, 215, 0, 0.3));
-  border-radius: 50%;
-  z-index: 10;
-  display: none;
-  animation: shine 4s infinite ease-in-out;
-  box-shadow: 0 0 30px 10px rgba(255, 223, 0, 0.6);
-}
+        @keyframes shakeInput {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(5px); }
+            50% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
 
-@keyframes shine {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 0.95;
-  }
-  50% {
-    transform: scale(1.1);
-    opacity: 1;
-  }
-}
+        @keyframes shakeContainer {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(10px); }
+            50% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+            100% { transform: translateX(0); }
+        }
 
-.sun-rays {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 160px;
-  height: 160px;
-  margin-left: -80px;
-  margin-top: -80px;
-  border-radius: 50%;
-  background: conic-gradient(rgba(255, 215, 0, 0.3) 0deg, transparent 30deg, rgba(255, 215, 0, 0.3) 60deg, transparent 90deg, rgba(255, 215, 0, 0.3) 120deg, transparent 150deg, rgba(255, 215, 0, 0.3) 180deg, transparent 210deg, rgba(255, 215, 0, 0.3) 240deg, transparent 270deg, rgba(255, 215, 0, 0.3) 300deg, transparent 330deg);
-  animation: rotateRays 8s linear infinite;
-  z-index: -1;
-}
+        /* Loading animation styles */
+        .loader {
+            border: 8px solid rgba(255, 255, 255, 0.2);
+            border-top: 8px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+            display: none; /* Hidden by default */
+        }
 
-@keyframes rotateRays {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-  
-}
-.cloud {
-  position: absolute;
-  top: -50;
-  width: 120px;
-  height: 60px;
-  background: #ffffffc2;
-  border-radius: 30px;
-  opacity: 0.8;
-  z-index: 1;
-}
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
 
-.cloud-left {
-  animation: moveRight linear infinite;
-}
+        /* Thêm vào phần style hiện có */
+        .snow-bg {
+            background: linear-gradient(135deg, #a8e6ff, #4dacff) !important;
+        }
 
-.cloud-right {
-  animation: moveLeft linear infinite;
-}
+        .snowflake {
+            color: #fff;
+            font-size: 1em;
+            position: fixed;
+            top: -10%;
+            animation: snowfall linear infinite;
+        }
 
-@keyframes moveRight {
-  0% {
-    left: -150px;
-  }
-  100% {
-    left: 110%;
-  }
-}
+        @keyframes snowfall {
+            0% {
+                transform: translateY(-10vh) rotate(0deg);
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+            }
+        }
 
-@keyframes moveLeft {
-  0% {
-    left: 110%;
-  }
-  100% {
-    left: -150px;
-  }
-}
+        /* Thêm vào phần style ngay sau phần snowfall animation */
+        .dark-clouds-bg {
+            background: url('https://c1.wallpaperflare.com/preview/748/977/304/storm-sky-cloudy-weather.jpg') !important;
+            background-size: cover !important;
+            background-position: center !important;
+            background-repeat: no-repeat !important;
+        }
 
+        .light-clouds-bg {
+            background: url('https://images.pexels.com/photos/19670/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1') !important;
+            background-size: cover !important;
+            background-position: center !important;
+            background-repeat: no-repeat !important;
+        }
+
+        /* Thêm vào phần style */
+        .dark-text {
+            color: #333 !important; /* Màu chữ tối */
+        }
+
+        .dark-text h1,
+        .dark-text h2,
+        .dark-text h3,
+        .dark-text p,
+        .dark-text li {
+            color: #333 !important;
+            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
+        }
+
+        .dark-text input[type="text"]::placeholder {
+            color: #666 !important;
+        }
+
+        .dark-text .suggestions {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        /* Cập nhật phần dark-text trong style */
+        .dark-text input[type="text"] {
+            background: rgba(0, 0, 0, 0.1) !important;
+            color: #333 !important;
+        }
+
+        .dark-text input[type="text"]::placeholder {
+            color: #666 !important;
+        }
+
+        .dark-text button {
+            background: #2c3e50 !important;
+            color: #fff !important;
+        }
+
+        .dark-text button:hover {
+            background: #34495e !important;
+        }
+
+        .dark-text #error-message {
+            color: #d63031 !important;
+        }
+
+        /* Thêm vào phần style */
+        .forecast-container {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            animation: fadeInScale 0.5s ease-in-out;
+        }
+
+        .forecast-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .nav-button {
+            background: rgba(52, 152, 219, 0.8);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 1.5em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-button:hover {
+            background: rgba(41, 128, 185, 0.9);
+            transform: scale(1.1);
+        }
+
+        .nav-button:disabled {
+            background: rgba(189, 195, 199, 0.5);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .forecast-info {
+            animation: fadeInScale 0.3s ease-in-out;
+        }
   </style>
 </head>
 <body>
-<canvas id="snowCanvas"></canvas>
-<div class="sun" id="sunEffect">
-  <div class="sun-rays"></div>
-</div>
-  
-<div class="container">
-  <h1>Dự Báo Thời Tiết Thông Minh</h1>
-  <div class="search-box">
-    <input type="text" id="locationInput" placeholder="Nhập xã, huyện, tỉnh...">
-    <button onclick="getWeather()">Tìm</button>
-  </div>
-  <div id="error-message" style="color: red; margin-top: 5px;"></div>
-  <div class="weather-info" id="weatherInfo">
-    <h2 id="locationName"></h2>
-    <img id="weatherIcon" class="weather-icon" alt="Weather Icon">
-    <p id="temperature"></p>
-    <p id="description"></p>
-    <p id="humidity"></p>
-    <p id="wind"></p>
-    <div class="suggestions" id="suggestions">
-      <h3>Gợi ý hoạt động</h3>
-      <ul id="suggestionList"></ul>
+  <div class="container" id="container">
+    <h1>Dự Báo Thời Tiết Thông Minh</h1>
+    <div class="search-box">
+      <input type="text" id="locationInput" placeholder="Nhập xã, huyện, tỉnh...">
+      <button onclick="getWeather()">Tìm</button>
+    </div>
+    <div id="error-message" style="color: red; margin-top: 5px;"></div>
+
+    <!-- Loading animation element -->
+    <div class="loader" id="loading"></div>
+
+    <div class="weather-info" id="weatherInfo">
+      <h2 id="locationName"></h2>
+      <img id="weatherIcon" class="weather-icon" alt="Weather Icon">
+      <p id="temperature"></p>
+      <p id="description"></p>
+      <p id="humidity"></p>
+      <p id="wind"></p>
+      <div class="suggestions" id="suggestions">
+        <h3>Gợi ý hoạt động</h3>
+        <ul id="suggestionList"></ul>
+      </div>
+    </div>
+
+    <!-- Thêm vào trong div.container, sau div.weather-info -->
+    <div class="forecast-container" id="forecastContainer" style="display: none;">
+        <div class="forecast-navigation">
+            <button id="prevDay" class="nav-button">&#8592;</button>
+            <h3 id="forecastDate">Dự báo ngày</h3>
+            <button id="nextDay" class="nav-button">&#8594;</button>
+        </div>
+        <div class="forecast-info" id="forecastInfo">
+            <img id="forecastIcon" class="weather-icon" alt="Forecast Icon">
+            <p id="forecastTemp"></p>
+            <p id="forecastDesc"></p>
+            <p id="forecastHumidity"></p>
+            <p id="forecastWind"></p>
+        </div>
     </div>
   </div>
-</div>
-<div id="weeklyForecast" style="margin-top: 30px; display: none;">
-  <h3>Dự báo 7 ngày tới</h3>
-  <div id="forecastList" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 15px;"></div>
-</div>
 
+  <script>
+    const apiKey = '23de87e7be7570d22175de1e92feb8bb'; // OpenWeatherMap key
+    const locationInput = document.getElementById("locationInput");
+    const weatherInfo = document.getElementById("weatherInfo");
+    const errorMessage = document.getElementById("error-message");
+    const container = document.getElementById("container");
 
-<script>
+    // Thêm các biến toàn cục mới
+    let forecastData = [];
+    let currentForecastIndex = 0;
 
-  // Tuyết rơi setup
-  const canvas = document.getElementById('snowCanvas');
-  const ctx = canvas.getContext('2d');
-  let snowflakes = [];
-
-  function resizeCanvas() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-  }
-
-  function createSnowflake() {
-    return {
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
-      radius: Math.random() * 4 + 1,
-      speed: Math.random() * 2 + 1,
-      opacity: Math.random() * 0.5 + 0.5
-    };
-  }
-
-  function updateSnowflakes() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    snowflakes.forEach(snowflake => {
-      ctx.beginPath();
-      ctx.arc(snowflake.x, snowflake.y, snowflake.radius, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(255, 255, 255, ${snowflake.opacity})`;
-      ctx.fill();
-      snowflake.y += snowflake.speed;
-      if (snowflake.y > canvas.height) {
-        snowflake.x = Math.random() * canvas.width;
-        snowflake.y = -snowflake.radius;
-      }
+    locationInput.addEventListener('keypress', function (event) {
+        if (event.key === 'Enter') {
+            getWeather();
+        }
     });
-  }
 
-  function animateSnow() {
-    updateSnowflakes();
-    requestAnimationFrame(animateSnow);
-  }
+    async function getWeather() {
+        const location = locationInput.value;
 
-  function initSnow() {
-    snowflakes = Array.from({ length: 100 }, createSnowflake);
-    animateSnow();
-  }
+        // Reset error state
+        locationInput.classList.remove('error');
+        container.classList.remove('error-container');
+        errorMessage.textContent = '';
+        locationInput.placeholder = "Nhập xã, huyện, tỉnh...";
 
-  resizeCanvas();
-  window.addEventListener('resize', resizeCanvas);
+        if (!location) {
+            locationInput.classList.add('error');
+            container.classList.add('error-container');
+            errorMessage.textContent = "Vui lòng nhập tên xã/huyện/tỉnh!";
+            return;
+        }
 
-  let apiKey = '23de87e7be7570d22175de1e92feb8bb'; // Đưa ra ngoài nếu cần
+        const geoUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location)}`;
 
-const locationInput = document.getElementById("locationInput");
-const weatherInfo = document.getElementById("weatherInfo");
-const errorMessage = document.getElementById("error-message");
-const container = document.querySelector(".container");
+        // Show loading animation
+        document.getElementById('loading').style.display = 'block';
+        weatherInfo.style.display = 'none'; // Hide weather info while loading
 
-locationInput.addEventListener('keypress', function (event) {
-  if (event.key === 'Enter') {
-    getWeather();
-  }
-});
-const weeklyForecast = document.getElementById("weeklyForecast");
-const forecastList = document.getElementById("forecastList");
-async function getWeather() {
-  const location = locationInput.value;
+        try {
+            const geoRes = await fetch(geoUrl);
+            const geoData = await geoRes.json();
 
-  // Reset error state
-  locationInput.classList.remove('error');
-  container.classList.remove('error-container');
-  errorMessage.textContent = '';
-  locationInput.placeholder = "Nhập xã, huyện, tỉnh...";
+            if (!geoData.length) {
+                throw new Error("Không tìm thấy địa điểm!");
+            }
 
-  if (!location) {
-    locationInput.classList.add('error');
-    container.classList.add('error-container');
-    errorMessage.textContent = "Vui lòng nhập tên xã/huyện/tỉnh!";
-    return;
-  }
+            const lat = geoData[0].lat;
+            const lon = geoData[0].lon;
+            const displayName = geoData[0].display_name;
 
-  const geoUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location)}`;
+            const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=vi`;
+            const weatherRes = await fetch(weatherUrl);
+            const weather = await weatherRes.json();
 
-  try {
-    const geoRes = await fetch(geoUrl);
-    const geoData = await geoRes.json();
+            // Lấy thêm dữ liệu dự báo 7 ngày
+            const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=vi`;
+            const forecastRes = await fetch(forecastUrl);
+            const forecastJson = await forecastRes.json();
 
-    if (!geoData.length) {
-      throw new Error("Không tìm thấy địa điểm!");
+            // Xử lý dữ liệu dự báo
+            forecastData = processForecastData(forecastJson.list);
+            currentForecastIndex = 0;
+            
+            // Hiển thị dự báo đầu tiên
+            document.getElementById('forecastContainer').style.display = 'block';
+            updateForecastDisplay();
+
+            // Add 'update' class to trigger animation
+            container.classList.add('update');
+
+            // Remove the class after the animation completes
+            setTimeout(() => {
+                container.classList.remove('update');
+            }, 600); // Duration of the updateAnimation
+
+            weatherInfo.style.display = "block";
+            document.getElementById("locationName").textContent = displayName;
+            document.getElementById("temperature").textContent = `Nhiệt độ: ${Math.round(weather.main.temp)}°C`;
+            document.getElementById("description").textContent = `Thời tiết: ${weather.weather[0].description}`;
+            document.getElementById("humidity").textContent = `Độ ẩm: ${weather.main.humidity}%`;
+            document.getElementById("wind").textContent = `Tốc độ gió: ${weather.wind.speed} m/s`;
+            document.getElementById("weatherIcon").src = `https://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png`;
+
+            suggestActivities(weather.weather[0].main, weather.main.temp);
+
+        } catch (err) {
+            locationInput.classList.add('error');
+            container.classList.add('error-container');
+            errorMessage.textContent = "Lỗi: " + err.message;
+            weatherInfo.style.display = 'none';
+            console.error(err);
+        } finally {
+            // Hide loading animation, whether successful or not
+            document.getElementById('loading').style.display = 'none';
+        }
     }
 
-    const lat = geoData[0].lat;
-    const lon = geoData[0].lon;
-    const displayName = geoData[0].display_name;
+    function suggestActivities(weather, temp) {
+        const suggestionList = document.getElementById('suggestionList');
+        suggestionList.innerHTML = '';
 
-    const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=vi`;
-    const weatherRes = await fetch(weatherUrl);
-    const weather = await weatherRes.json();
+        // Xóa tất cả hiệu ứng cũ trước
+        document.body.classList.remove('snow-bg', 'dark-clouds-bg', 'light-clouds-bg', 'dark-text');
+        removeSnowflakes();
+        removeClouds();
 
-    const weatherMain = weather.weather[0].main;
-    const temp = weather.main.temp;
+        let suggestions = [];
+        if (weather.includes('Rain')) {
+            suggestions = [
+                'Ở nhà xem phim hoặc đọc sách.',
+                'Chuẩn bị ô và áo mưa nếu cần ra ngoài.',
+                'Thưởng thức một tách trà nóng.',
+                'Hòa mình vào những giai điệu êm dịu.'
+            ];
+        } else if (weather.includes('Clear')) {
+            suggestions = [
+                'Đi dạo công viên hoặc tập thể dục ngoài trời.',
+                'Tổ chức một buổi picnic cùng bạn bè.',
+                'Chụp ảnh phong cảnh dưới ánh nắng.',
+                'Chăm sóc cây cối hoặc trồng thêm hoa và rau.'
+            ];
+        } else if (weather.includes('Clouds')) {
+            suggestions = [
+                'Thăm bảo tàng hoặc triển lãm nghệ thuật.',
+                'Đi cà phê với bạn bè.',
+                'Tập yoga trong nhà để thư giãn.',
+                'Học vẽ, viết, làm đồ thủ công.'
+            ];
+            
+            const description = document.getElementById("description").textContent.toLowerCase();
+            if (description.includes('u ám') || description.includes('mây đen')) {
+                document.body.classList.add('dark-clouds-bg');
+                createClouds(true);
+            } else {
+                document.body.classList.add('light-clouds-bg');
+                document.body.classList.add('dark-text'); // Thêm class dark-text
+                createClouds(false);
+            }
+        } else if (weather.includes('Snow')) {
+            suggestions = [
+                'Xây người tuyết hoặc chơi ném tuyết.',
+                'Giữ ấm với quần áo dày và khăn quàng.',
+                'Uống chocolate nóng bên lò sưởi.'
+            ];
+            // Thêm hiệu ứng tuyết
+            document.body.classList.add('snow-bg');
+            createSnowflakes();
+        }
 
-    weatherInfo.style.display = "block";
-    document.getElementById("locationName").textContent = displayName;
-    document.getElementById("temperature").textContent = `Nhiệt độ: ${Math.round(temp)}°C`;
-    document.getElementById("description").textContent = `Thời tiết: ${weather.weather[0].description}`;
-    document.getElementById("humidity").textContent = `Độ ẩm: ${weather.main.humidity}%`;
-    document.getElementById("wind").textContent = `Tốc độ gió: ${weather.wind.speed} m/s`;
-    document.getElementById("weatherIcon").src = `https://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png`;
-    const oneCallUrl = `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=vi&exclude=minutely,hourly,alerts`;
+        if (temp > 30) {
+            suggestions.push('Uống đủ nước và tránh tiếp xúc trực tiếp với ánh nắng trong thời gian dài.');
+        } else if (temp < 10) {
+            suggestions.push('Mặc nhiều lớp áo, uống nước ấm và tránh gió lạnh.');
+        }
 
-  const oneCallRes = await fetch(oneCallUrl);
-  const oneCallData = await oneCallRes.json();
-  showWeeklyForecast(oneCallData.daily);
-    suggestActivities(weatherMain, temp);
-
-    // Hiển thị hoặc ẩn tuyết rơi dựa theo điều kiện thời tiết
-    if (weatherMain.includes('Snow')) {
-      canvas.style.display = 'block';
-      if (snowflakes.length === 0) {
-        initSnow();
-      }
-    } else {
-      canvas.style.display = 'none';
-      snowflakes = []; // clear snowflakes nếu không phải tuyết
+        suggestions.forEach(suggestion => {
+            const li = document.createElement('li');
+            li.textContent = suggestion;
+            suggestionList.appendChild(li);
+        });
     }
 
-    // Cập nhật hiệu ứng nắng
-    const sun = document.getElementById("sunEffect");
-    if (weatherMain.includes('Clear')) {
-      document.body.classList.add('sunny');
-      sun.style.display = 'block';
-    } else {
-      sun.style.display = 'none';
+    // Thêm các hàm mới
+    function processForecastData(list) {
+        const forecasts = [];
+        const today = new Date().setHours(0, 0, 0, 0);
+        
+        list.forEach(item => {
+            const date = new Date(item.dt * 1000);
+            if (date.setHours(0, 0, 0, 0) > today) {
+                forecasts.push({
+                    date: date,
+                    icon: item.weather[0].icon,
+                    temp: Math.round(item.main.temp),
+                    description: item.weather[0].description,
+                    humidity: item.main.humidity,
+                    wind: item.wind.speed
+                });
+            }
+        });
+
+        // Lọc để chỉ lấy 1 dự báo cho mỗi ngày
+        return forecasts.filter((forecast, index, self) =>
+            index === self.findIndex((t) => 
+                t.date.getDate() === forecast.date.getDate()
+            )
+        ).slice(0, 7); // Giới hạn 7 ngày
     }
 
-    // Cập nhật background tùy theo điều kiện thời tiết
-    document.body.classList.remove('sunny', 'rainy', 'cloudy', 'snowy', 'cold');
-    if (weatherMain.includes('Clear')) {
-      document.body.classList.add('sunny');
-    } else if (weatherMain.includes('Rain')) {
-      document.body.classList.add('rainy');
-    } else if (weatherMain.includes('Clouds')) {
-      document.body.classList.add('cloudy');
-    } else if (weatherMain.includes('Snow')) {
-      document.body.classList.add('snowy');
+    function updateForecastDisplay() {
+        const forecast = forecastData[currentForecastIndex];
+        const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        
+        document.getElementById('forecastDate').textContent = 
+            forecast.date.toLocaleDateString('vi-VN', dateOptions);
+        document.getElementById('forecastIcon').src = 
+            `https://openweathermap.org/img/wn/${forecast.icon}@2x.png`;
+        document.getElementById('forecastTemp').textContent = 
+            `Nhiệt độ: ${forecast.temp}°C`;
+        document.getElementById('forecastDesc').textContent = 
+            `Thời tiết: ${forecast.description}`;
+        document.getElementById('forecastHumidity').textContent = 
+            `Độ ẩm: ${forecast.humidity}%`;
+        document.getElementById('forecastWind').textContent = 
+            `Tốc độ gió: ${forecast.wind} m/s`;
+
+        // Cập nhật trạng thái nút
+        document.getElementById('prevDay').disabled = currentForecastIndex === 0;
+        document.getElementById('nextDay').disabled = currentForecastIndex === forecastData.length - 1;
     }
 
-  } catch (err) {
-    locationInput.classList.add('error');
-    container.classList.add('error-container');
-    errorMessage.textContent = "Lỗi: " + err.message;
-    weatherInfo.style.display = 'none';
-    console.error("Lỗi chi tiết: ", err);
-  }
-}
-if (weatherDesc.includes("clear") || weatherDesc.includes("sun") || weatherDesc.includes("few clouds") || weatherDesc.includes("partly cloudy")) {
-  showSun();
-} else {
-  removeSun();
-}
-function showWeeklyForecast(dailyData) {
-  forecastList.innerHTML = '';
-  weeklyForecast.style.display = 'block';
-
-  for (let i = 1; i <= 7; i++) {
-    const day = dailyData[i];
-    const date = new Date(day.dt * 1000);
-    const weekday = date.toLocaleDateString('vi-VN', { weekday: 'short', day: 'numeric', month: 'numeric' });
-
-    const card = document.createElement('div');
-    card.style.background = 'rgba(255,255,255,0.15)';
-    card.style.backdropFilter = 'blur(5px)';
-    card.style.borderRadius = '15px';
-    card.style.padding = '15px';
-    card.style.width = '110px';
-    card.style.textAlign = 'center';
-    card.style.color = '#fff';
-
-    card.innerHTML = `
-      <strong>${weekday}</strong>
-      <img src="https://openweathermap.org/img/wn/${day.weather[0].icon}@2x.png" alt="icon" style="width:50px;">
-      <div>${Math.round(day.temp.max)}° / ${Math.round(day.temp.min)}°</div>
-    `;
-
-    forecastList.appendChild(card);
-  }
-}
-function showWeeklyForecast(dailyData) {
-  // Kiểm tra nếu dailyData không hợp lệ hoặc không có dữ liệu
-  if (!dailyData || !Array.isArray(dailyData) || dailyData.length < 2) {
-    forecastList.innerHTML = "<p>Không có dữ liệu dự báo 7 ngày.</p>";
-    weeklyForecast.style.display = "block";
-    return;
-  }
-
-  forecastList.innerHTML = '';
-  weeklyForecast.style.display = 'block';
-
-  for (let i = 1; i <= 7 && i < dailyData.length; i++) {
-    const day = dailyData[i];
-    const date = new Date(day.dt * 1000);
-    const weekday = date.toLocaleDateString('vi-VN', { weekday: 'short', day: 'numeric', month: 'numeric' });
-
-    const card = document.createElement('div');
-    card.style.background = 'rgba(255,255,255,0.15)';
-    card.style.backdropFilter = 'blur(5px)';
-    card.style.borderRadius = '15px';
-    card.style.padding = '15px';
-    card.style.width = '110px';
-    card.style.textAlign = 'center';
-    card.style.color = '#fff';
-
-    card.innerHTML = `
-      <strong>${weekday}</strong>
-      <img src="https://openweathermap.org/img/wn/${day.weather[0].icon}@2x.png" alt="icon" style="width:50px;">
-      <div>${Math.round(day.temp.max)}° / ${Math.round(day.temp.min)}°</div>
-    `;
-
-    forecastList.appendChild(card);
-  }
-}
-
-  function suggestActivities(weather, temp) {
-    const suggestionList = document.getElementById('suggestionList');
-    suggestionList.innerHTML = '';
-
-    let suggestions = [];
-    if (weather.includes('Rain')) {
-        suggestions = [
-            'Ở nhà xem phim hoặc đọc sách.',
-            'Chuẩn bị ô và áo mưa nếu cần ra ngoài.',
-            'Thưởng thức một tách trà nóng.',
-            'Hòa mình vào những giai điệu êm dịu.'
-        ];
-    } else if (weather.includes('Clear')) {
-        suggestions = [
-            'Đi dạo công viên hoặc tập thể dục ngoài trời.',
-            'Tổ chức một buổi picnic cùng bạn bè.',
-            'Chụp ảnh phong cảnh dưới ánh nắng.',
-            'Chăm sóc cây cối hoặc trồng thêm hoa và rau.'
-        ];
-    } else if (weather.includes('Clouds')) {
-        suggestions = [
-            'Thăm bảo tàng hoặc triển lãm nghệ thuật.',
-            'Đi cà phê với bạn bè.',
-            'Tập yoga trong nhà để thư giãn.',
-            'Học vẽ, viết, làm đồ thủ công.'
-        ];
-    } else if (weather.includes('Snow')) {
-        suggestions = [
-            'Xây người tuyết hoặc chơi ném tuyết.',
-            'Giữ ấm với quần áo dày và khăn quàng.',
-            'Uống chocolate nóng bên lò sưởi.'
-        ];
-    }
-
-    if (temp > 30) {
-        suggestions.push('Uống đủ nước và tránh tiếp xúc trực tiếp với ánh nắng trong thời gian dài.');
-    } else if (temp < 10) {
-        suggestions.push('Mặc nhiều lớp áo, uống nước ấm và tránh gió lạnh.');
-    }
-
-    suggestions.forEach(suggestion => {
-        const li = document.createElement('li');
-        li.textContent = suggestion;
-        suggestionList.appendChild(li);
+    // Thêm event listeners cho các nút điều hướng
+    document.getElementById('prevDay').addEventListener('click', () => {
+        if (currentForecastIndex > 0) {
+            currentForecastIndex--;
+            updateForecastDisplay();
+        }
     });
-  }
-</script>
+
+    document.getElementById('nextDay').addEventListener('click', () => {
+        if (currentForecastIndex < forecastData.length - 1) {
+            currentForecastIndex++;
+            updateForecastDisplay();
+        }
+    });
+
+    function createSnowflakes() {
+        for (let i = 0; i < 50; i++) {
+            const snowflake = document.createElement('div');
+            snowflake.className = 'snowflake';
+            snowflake.textContent = '❅';
+            snowflake.style.left = Math.random() * 100 + 'vw';
+            snowflake.style.animationDuration = (Math.random() * 3 + 2) + 's';
+            snowflake.style.opacity = Math.random();
+            document.body.appendChild(snowflake);
+        }
+    }
+
+    function removeSnowflakes() {
+        const snowflakes = document.querySelectorAll('.snowflake');
+        snowflakes.forEach(flake => flake.remove());
+    }
+
+    // Cập nhật hàm createClouds
+    function createClouds(isDark = false) {
+        // Tăng số lượng mây lên 20 
+        
+    }
+
+    function removeClouds() {
+        const clouds = document.querySelectorAll('.cloud');
+        clouds.forEach(cloud => cloud.remove());
+    }
+  </script>
 </body>
 </html>
