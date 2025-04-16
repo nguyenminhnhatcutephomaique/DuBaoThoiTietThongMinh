@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dự Báo Thời Tiết Thông Minh</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(135deg, #71b7e6, #9b59b6);
+      color: #fff;
+      padding: 20px;
+      transition: background 0.5s ease;
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 30px;
+      max-width: 600px;
+      width: 100%;
+      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+      text-align: center;
+      transition: transform 0.3s ease;
+    }
+
+    .container:hover {
+      transform: scale(1.02);
+    }
+
+    h1 {
+      font-size: 2.5em;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .search-box {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    input[type="text"] {
+      padding: 12px;
+      border: none;
+      border-radius: 25px;
+      width: 70%;
+      font-size: 1em;
+      outline: none;
+      background: rgba(255, 255, 255, 0.2);
+      color: #fff;
+    }
+
+    input[type="text"]::placeholder {
+      color: #ddd;
+    }
+
+    button {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 25px;
+      background: #3498db;
+      color: #fff;
+      font-size: 1em;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background: #2980b9;
+    }
+
+    .weather-info {
+      margin-top: 20px;
+      display: none;
+    }
+
+    .weather-info h2 {
+      font-size: 1.8em;
+      margin-bottom: 10px;
+    }
+
+    .weather-info p {
+      font-size: 1.2em;
+      margin: 8px 0;
+    }
+
+    .weather-icon {
+      width: 100px;
+      margin: 10px auto;
+    }
+
+    .suggestions {
+      margin-top: 20px;
+      padding: 15px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 15px;
+    }
+
+    .suggestions h3 {
+      font-size: 1.5em;
+      margin-bottom: 10px;
+    }
+
+    .suggestions ul {
+      list-style: none;
+      font-size: 1.1em;
+    }
+
+    .suggestions li {
+      margin: 5px 0;
+    }
+
+    @media (max-width: 500px) {
+      h1 {
+        font-size: 2em;
+      }
+
+      .container {
+        padding: 20px;
+      }
+
+      input[type="text"], button {
+        font-size: 0.9em;
+      }
+    }
+
+    .sunny {
+      background: url('https://img.tripi.vn/cdn-cgi/image/width=700,height=700/https://gcs.tripi.vn/public-tripi/tripi-feed/img/482886OUG/anh-mo-ta.png') no-repeat center center/cover;
+    }
+
+    .rainy {
+      background: url('https://cdn.giaoducthoidai.vn/images/b4508baace0d9fe4c8bbd296e259642e2a12b3c03487318a1eb3a0d932c875c77cf03fa6fd3e21ff928dd55a238e109d0f2ff6d9da0b0c241d13f05057ce95da6b2cf1721f9782fcf472a21c180aca34/con-mua-dau-mua-ha-8652.jpg.webp') no-repeat center center/cover;
+    }
+
+    .cloudy {
+      background: url('https://cdn.pixabay.com/photo/2020/08/11/21/39/clouds-5481190_640.jpg') no-repeat center center/cover;
+    }
+
+    .snowy {
+      background: url('https://photo.znews.vn/w660/Uploaded/kbd_bcvi/2020_12_23/5fe2ae0ea56de.jpg') no-repeat center center/cover;
+    }
+
+    #snowCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .error {
+      font-size: 1.5em;
+      animation: shake 0.5s;
+      color: red;
+    }
+
+    @keyframes shake {
+      0% { transform: translateX(0); }
+      25% { transform: translateX(5px); }
+      50% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+      100% { transform: translateX(0); }
+    }
+  </style>
+</head>
+<body>
+<canvas id="snowCanvas"></canvas>
+<div class="cloud-animation" id="cloud1"></div>
+<div class="cloud-animation" id="cloud2" style="top: 120px; animation-delay: 20s;"></div>
+  
+<div class="container">
+  <h1>Dự Báo Thời Tiết Thông Minh</h1>
+  <div class="search-box">
+    <input type="text" id="locationInput" placeholder="Nhập xã, huyện, tỉnh...">
+    <button onclick="getWeather()">Tìm</button>
+  </div>
+  <div id="error-message" style="color: red; margin-top: 5px;"></div>
+  <div class="weather-info" id="weatherInfo">
+    <h2 id="locationName"></h2>
+    <img id="weatherIcon" class="weather-icon" alt="Weather Icon">
+    <p id="temperature"></p>
+    <p id="description"></p>
+    <p id="humidity"></p>
+    <p id="wind"></p>
+    <div class="suggestions" id="suggestions">
+      <h3>Gợi ý hoạt động</h3>
+      <ul id="suggestionList"></ul>
+    </div>
+  </div>
+</div>
+
+<script>
+
+  // Tuyết rơi setup
+  const canvas = document.getElementById('snowCanvas');
+  const ctx = canvas.getContext('2d');
+  let snowflakes = [];
+
+  function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+
+  function createSnowflake() {
+    return {
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      radius: Math.random() * 4 + 1,
+      speed: Math.random() * 2 + 1,
+      opacity: Math.random() * 0.5 + 0.5
+    };
+  }
+
+  function updateSnowflakes() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    snowflakes.forEach(snowflake => {
+      ctx.beginPath();
+      ctx.arc(snowflake.x, snowflake.y, snowflake.radius, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255, 255, 255, ${snowflake.opacity})`;
+      ctx.fill();
+      snowflake.y += snowflake.speed;
+      if (snowflake.y > canvas.height) {
+        snowflake.x = Math.random() * canvas.width;
+        snowflake.y = -snowflake.radius;
+      }
+    });
+  }
+
+  function animateSnow() {
+    updateSnowflakes();
+    requestAnimationFrame(animateSnow);
+  }
+
+  function initSnow() {
+    snowflakes = Array.from({ length: 100 }, createSnowflake);
+    animateSnow();
+  }
+
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  let apiKey = '23de87e7be7570d22175de1e92feb8bb'; // Đưa ra ngoài nếu cần
+
+const locationInput = document.getElementById("locationInput");
+const weatherInfo = document.getElementById("weatherInfo");
+const errorMessage = document.getElementById("error-message");
+const container = document.querySelector(".container");
+
+locationInput.addEventListener('keypress', function (event) {
+  if (event.key === 'Enter') {
+    getWeather();
+  }
+});
+
+async function getWeather() {
+  const location = locationInput.value;
+
+  // Reset error state
+  locationInput.classList.remove('error');
+  container.classList.remove('error-container');
+  errorMessage.textContent = '';
+  locationInput.placeholder = "Nhập xã, huyện, tỉnh...";
+
+  if (!location) {
+    locationInput.classList.add('error');
+    container.classList.add('error-container');
+    errorMessage.textContent = "Vui lòng nhập tên xã/huyện/tỉnh!";
+    return;
+  }
+
+  const geoUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location)}`;
+
+  try {
+    const geoRes = await fetch(geoUrl);
+    const geoData = await geoRes.json();
+
+    if (!geoData.length) {
+      throw new Error("Không tìm thấy địa điểm!");
+    }
+
+    const lat = geoData[0].lat;
+    const lon = geoData[0].lon;
+    const displayName = geoData[0].display_name;
+
+    const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=vi`;
+    const weatherRes = await fetch(weatherUrl);
+    const weather = await weatherRes.json();
+
+    const weatherMain = weather.weather[0].main;
+    const temp = weather.main.temp;
+
+    weatherInfo.style.display = "block";
+    document.getElementById("locationName").textContent = displayName;
+    document.getElementById("temperature").textContent = `Nhiệt độ: ${Math.round(temp)}°C`;
+    document.getElementById("description").textContent = `Thời tiết: ${weather.weather[0].description}`;
+    document.getElementById("humidity").textContent = `Độ ẩm: ${weather.main.humidity}%`;
+    document.getElementById("wind").textContent = `Tốc độ gió: ${weather.wind.speed} m/s`;
+    document.getElementById("weatherIcon").src = `https://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png`;
+
+    suggestActivities(weatherMain, temp);
+// Hiển thị hoặc ẩn tuyết rơi dựa theo điều kiện thời tiết
+if (weatherMain.includes('Snow')) {
+  canvas.style.display = 'block';
+  if (snowflakes.length === 0) {
+    initSnow();
+  }
+} else {
+  canvas.style.display = 'none';
+  snowflakes = []; // clear snowflakes nếu không phải tuyết
+}
+// Xóa các class thời tiết cũ
+document.body.classList.remove('sunny', 'rainy', 'cloudy', 'snowy', 'cold');
+
+// Thêm class phù hợp với điều kiện thời tiết
+if (weatherMain.includes('Clear')) {
+  document.body.classList.add('sunny');
+} else if (weatherMain.includes('Rain')) {
+  document.body.classList.add('rainy');
+} else if (weatherMain.includes('Clouds')) {
+  document.body.classList.add('cloudy');
+} else if (weatherMain.includes('Snow')) {
+  document.body.classList.add('snowy');
+}
+// Hiển thị mây nếu nhiều mây
+const cloud1 = document.getElementById("cloud1");
+const cloud2 = document.getElementById("cloud2");
+if (weatherMain.includes("Clouds")) {
+  cloud1.style.display = "block";
+  cloud2.style.display = "block";
+} else {
+  cloud1.style.display = "none";
+  cloud2.style.display = "none";
+}
+
+  } catch (err) {
+    locationInput.classList.add('error');
+    container.classList.add('error-container');
+    errorMessage.textContent = "Lỗi: " + err.message;
+    weatherInfo.style.display = 'none';
+    console.error("Lỗi chi tiết: ", err);
+  }
+
+}
+
+
+  function resetWeather() {
+    locationInput.value = '';
+    weatherInfo.style.display = 'none';
+    errorMessage.textContent = '';
+    locationInput.placeholder = "Nhập xã, huyện, tỉnh...";
+  }
+
+  function suggestActivities(weather, temp) {
+    const suggestionList = document.getElementById('suggestionList');
+    suggestionList.innerHTML = '';
+
+    let suggestions = [];
+    if (weather.includes('Rain')) {
+        suggestions = [
+            'Ở nhà xem phim hoặc đọc sách.',
+            'Chuẩn bị ô và áo mưa nếu cần ra ngoài.',
+            'Thưởng thức một tách trà nóng.',
+            'Hòa mình vào những giai điệu êm dịu.'
+        ];
+    } else if (weather.includes('Clear')) {
+        suggestions = [
+            'Đi dạo công viên hoặc tập thể dục ngoài trời.',
+            'Tổ chức một buổi picnic cùng bạn bè.',
+            'Chụp ảnh phong cảnh dưới ánh nắng.',
+            'Chăm sóc cây cối hoặc trồng thêm hoa và rau.'
+        ];
+    } else if (weather.includes('Clouds')) {
+        suggestions = [
+            'Thăm bảo tàng hoặc triển lãm nghệ thuật.',
+            'Đi cà phê với bạn bè.',
+            'Tập yoga trong nhà để thư giãn.',
+            'Học vẽ, viết, làm đồ thủ công.'
+        ];
+    } else if (weather.includes('Snow')) {
+        suggestions = [
+            'Xây người tuyết hoặc chơi ném tuyết.',
+            'Giữ ấm với quần áo dày và khăn quàng.',
+            'Uống chocolate nóng bên lò sưởi.'
+        ];
+    }
+
+    if (temp > 30) {
+        suggestions.push('Uống đủ nước và tránh tiếp xúc trực tiếp với ánh nắng trong thời gian dài.');
+    } else if (temp < 10) {
+        suggestions.push('Mặc nhiều lớp áo, uống nước ấm và tránh gió lạnh.');
+    }
+
+    suggestions.forEach(suggestion => {
+        const li = document.createElement('li');
+        li.textContent = suggestion;
+        suggestionList.appendChild(li);
+    });
+  }
+</script>
+</body>
+</html>
